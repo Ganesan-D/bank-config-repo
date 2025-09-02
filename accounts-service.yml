@@ -19,7 +19,9 @@ spring:
     logging:
       level:
         root: INFO
-        com.example.accountservice: DEBUG
+        com:
+          myproject:
+            accounts_service: DEBUG
 
     account:
       service:
