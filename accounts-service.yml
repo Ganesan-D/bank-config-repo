@@ -15,17 +15,15 @@ spring:
     properties:
       hibernate:
         format_sql: true
+    # Logging under spring.jpa is fine, but usually put under 'logging' directly
+logging:
+  level:
+    root: INFO
+    com.myproject.accounts_service: DEBUG
 
-    logging:
-      level:
-        root: INFO
-        com:
-          myproject:
-            accounts_service: DEBUG
-
-    account:
-      service:
-        message: "Welcome to Account Service - Powered by Spring Cloud Config"
+account:
+  service:
+    message: "Welcome to Account Service - Powered by Spring Cloud Config"
 
 eureka:
   client:
