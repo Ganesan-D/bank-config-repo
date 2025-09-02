@@ -16,15 +16,6 @@ spring:
       hibernate:
         format_sql: true
 
-logging:
-  level:
-    root: INFO
-    com.myproject.accounts_service: DEBUG
-
-account:
-  service:
-    message: "Welcome to Account Service - Powered by Spring Cloud Config"
-
 eureka:
   client:
     service-url:
