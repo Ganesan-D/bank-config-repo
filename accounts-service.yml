@@ -15,7 +15,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
-    # Logging under spring.jpa is fine, but usually put under 'logging' directly
+
 logging:
   level:
     root: INFO
