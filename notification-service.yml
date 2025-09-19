@@ -7,7 +7,7 @@ spring:
   mail:
     host: smtp.gmail.com   # Gmail SMTP server
     port: 587              # Port for TLS
-    username: ganeshmessi207@gmail.com
+    username: mybank.notificationsender@gmail.com
     password: nxjn ciuo wxdu zxtg
     properties:
       mail:
