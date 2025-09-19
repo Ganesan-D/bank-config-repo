@@ -14,3 +14,15 @@ spring:
         spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
         spring.json.trusted.packages: "*"
 
+
+  mail:
+    host: smtp.gmail.com   # Gmail SMTP server
+    port: 587              # Port for TLS
+    username: "ganeshmessi207@gmail.com"
+    password: "GameChanger$10"
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
