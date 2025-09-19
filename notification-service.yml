@@ -8,7 +8,7 @@ spring:
     host: smtp.gmail.com   # Gmail SMTP server
     port: 587              # Port for TLS
     username: ganeshmessi207@gmail.com
-    password: GameChanger$10
+    password: nxjn ciuo wxdu zxtg
     properties:
       mail:
         smtp:
