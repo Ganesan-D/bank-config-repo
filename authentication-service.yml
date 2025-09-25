@@ -17,3 +17,4 @@ jwt:
   private-key-pem: classpath:keys/rsa_private.pem
   public-key-pem: classpath:keys/rsa_public.pem
   issuer: auth.mybank.local
+
