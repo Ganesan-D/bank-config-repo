@@ -36,6 +36,3 @@ transaction:
   topic:
     name: transaction-events
 
-
-jwt:
-  public-key: classpath:keys/rsa_public.pem
