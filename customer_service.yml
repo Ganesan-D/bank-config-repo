@@ -28,3 +28,5 @@ logging:
   level:
     root: INFO
     org.springframework.web: DEBUG
+jwt:
+  public-key: classpath:keys/rsa_public.pem
