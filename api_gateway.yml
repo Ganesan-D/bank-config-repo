@@ -7,78 +7,69 @@ spring:
 
   cloud:
     gateway:
-      redis-rate-limiter:
-        replenishRate: 20
-        burstCapacity: 50
-      # use discovery locator (Eureka) to automatically map service IDs -> routes
       discovery:
         locator:
           enabled: true
           lower-case-service-id: true
 
-      default-filters:
-        - RemoveRequestHeader=Cookie
-
-      # route-level filters can still be added via config server or here
       routes:
-        - id: auth
-          uri: lb://auth-service
-          predicates:
-            - Path=/api/auth/**
-
-        # You can also rely on discovery-locator to route by serviceId automatically
-        - id: static-account
+        - id: account-route
           uri: lb://account-service
           predicates:
             - Path=/api/accounts/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                key-resolver: "#{@principalNameKeyResolver}"
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+            - name: CircuitBreaker
+              args:
+                name: accountServiceCircuit
+                fallbackUri: forward:/fallback/account
+            - name: JwtForwardingFilter
 
-# OAuth2 Resource server will validate JWTs using JWKS published by Auth Service.
+        - id: customer-route
+          uri: lb://customer-service
+          predicates:
+            - Path=/api/customers/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: customerServiceCircuit
+                fallbackUri: forward:/fallback/customer
+            - name: JwtForwardingFilter
 
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          jwk-set-uri: http://localhost:9000/.well-known/jwks.json
-          # optional: configure decoder cache settings via bean if needed
+        - id: transaction-route
+          uri: lb://transaction-service
+          predicates:
+            - Path=/api/transactions/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: transactionServiceCircuit
+                fallbackUri: forward:/fallback/transaction
+            - name: JwtForwardingFilter
 
-# Redis config for RequestRateLimiter (production should use external redis)
+        - id: notification-route
+          uri: lb://notification-service
+          predicates:
+            - Path=/api/notifications/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: notificationServiceCircuit
+                fallbackUri: forward:/fallback/notification
+            - name: JwtForwardingFilter
+
+    config:
+      uri: http://localhost:8888   # Spring Cloud Config server
 
   redis:
     host: localhost
     port: 6379
 
-# Rate limiter defaults (can be overridden per-route)
-
-
-
-
-# Resilience4j defaults (time windows, slow call thresholds) can be controlled via properties
-resilience4j:
-  circuitbreaker:
-    configs:
-      default:
-        registerHealthIndicator: true
-        slidingWindowSize: 100
-        permittedNumberOfCallsInHalfOpenState: 10
-        minimumNumberOfCalls: 10
-        failureRateThreshold: 50
-        waitDurationInOpenState: 30s
-    instances:
-      accountServiceCircuit:
-        baseConfig: default
-      transactionServiceCircuit:
-        baseConfig: default
-
-# Zipkin / Sleuth tracing
-
-  zipkin:
-    base-url: http://localhost:9411
-  sleuth:
-    sampler:
-      probability: 1.0
-
-# structured logging pattern (see logback-spring.xml)
-logging:
-  level:
-    root: INFO
-    org.springframework.cloud.gateway: INFO
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
