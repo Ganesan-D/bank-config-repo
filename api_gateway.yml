@@ -1,0 +1,84 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+
+  cloud:
+    gateway:
+      redis-rate-limiter:
+        replenishRate: 20
+        burstCapacity: 50
+      # use discovery locator (Eureka) to automatically map service IDs -> routes
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+
+      default-filters:
+        - RemoveRequestHeader=Cookie
+
+      # route-level filters can still be added via config server or here
+      routes:
+        - id: auth
+          uri: lb://auth-service
+          predicates:
+            - Path=/api/auth/**
+
+        # You can also rely on discovery-locator to route by serviceId automatically
+        - id: static-account
+          uri: lb://account-service
+          predicates:
+            - Path=/api/accounts/**
+
+# OAuth2 Resource server will validate JWTs using JWKS published by Auth Service.
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:9000/.well-known/jwks.json
+          # optional: configure decoder cache settings via bean if needed
+
+# Redis config for RequestRateLimiter (production should use external redis)
+
+  redis:
+    host: localhost
+    port: 6379
+
+# Rate limiter defaults (can be overridden per-route)
+
+
+
+
+# Resilience4j defaults (time windows, slow call thresholds) can be controlled via properties
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        registerHealthIndicator: true
+        slidingWindowSize: 100
+        permittedNumberOfCallsInHalfOpenState: 10
+        minimumNumberOfCalls: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 30s
+    instances:
+      accountServiceCircuit:
+        baseConfig: default
+      transactionServiceCircuit:
+        baseConfig: default
+
+# Zipkin / Sleuth tracing
+
+  zipkin:
+    base-url: http://localhost:9411
+  sleuth:
+    sampler:
+      probability: 1.0
+
+# structured logging pattern (see logback-spring.xml)
+logging:
+  level:
+    root: INFO
+    org.springframework.cloud.gateway: INFO
