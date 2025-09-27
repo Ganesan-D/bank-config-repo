@@ -4,105 +4,106 @@ server:
 spring:
   application:
     name: api-gateway
-
-  config:
-    import: optional:configserver:http://localhost:8888
-
   cloud:
     gateway:
-      default-filters:
-        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
-
       discovery:
         locator:
-          enabled: true   # auto-register Eureka services as routes
+          enabled: true   # Enable service discovery (Eureka/Consul)
           lower-case-service-id: true
-
       routes:
-        - id: auth-service
-          uri: lb://auth-service
-          predicates:
-            - Path=/auth/**
-        - id: account-service
-          uri: lb://account-service
-          predicates:
-            - Path=/api/accounts/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: accountServiceCB
-                fallbackUri: forward:/fallback/accounts
-            - name: RequestRateLimiter
-              args:
-                redis-rate-limiter.replenishRate: 50   # 50 req/sec
-                redis-rate-limiter.burstCapacity: 100
+        # Customer Service Route
         - id: customer-service
           uri: lb://customer-service
           predicates:
-            - Path=/api/customers/**
+            - Path=/customers/**   # Example: /customers/123
           filters:
+            - JwtForwardingFilter
             - name: CircuitBreaker
               args:
                 name: customerServiceCB
                 fallbackUri: forward:/fallback/customers
-            - name: RequestRateLimiter
+
+        # Account Service Route
+        - id: account-service
+          uri: lb://account-service
+          predicates:
+            - Path=/accounts/**
+          filters:
+            - JwtForwardingFilter
+            - name: CircuitBreaker
               args:
-                redis-rate-limiter.replenishRate: 30
-                redis-rate-limiter.burstCapacity: 60
+                name: accountServiceCB
+                fallbackUri: forward:/fallback/accounts
+
+        # Transaction Service Route
         - id: transaction-service
           uri: lb://transaction-service
           predicates:
-            - Path=/api/transactions/**
+            - Path=/transactions/**
           filters:
+            - JwtForwardingFilter
             - name: CircuitBreaker
               args:
                 name: transactionServiceCB
                 fallbackUri: forward:/fallback/transactions
-            - name: RequestRateLimiter
-              args:
-                redis-rate-limiter.replenishRate: 20
-                redis-rate-limiter.burstCapacity: 40
+
+        # Notification Service Route
         - id: notification-service
           uri: lb://notification-service
           predicates:
-            - Path=/api/notifications/**
+            - Path=/notifications/**
           filters:
+            - JwtForwardingFilter
             - name: CircuitBreaker
               args:
                 name: notificationServiceCB
                 fallbackUri: forward:/fallback/notifications
-            - name: RequestRateLimiter
-              args:
-                redis-rate-limiter.replenishRate: 10
-                redis-rate-limiter.burstCapacity: 20
 
-  redis:
-    host: localhost
-    port: 6379
+    # Resilience4j (Circuit Breaker + Rate Limiting)
+resilience4j:
+  circuitbreaker:
+    instances:
+      customerServiceCB:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+      accountServiceCB:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+      transactionServiceCB:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+      notificationServiceCB:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
 
+  ratelimiter:
+    instances:
+      default:
+        limitForPeriod: 20
+        limitRefreshPeriod: 1s
+        timeoutDuration: 0
+
+# Logging (structured logs with traceId/spanId)
+logging:
+  level:
+    org.springframework.cloud.gateway: INFO
+    org.springframework.web: INFO
+    com.example.gateway: DEBUG
+
+# Distributed tracing (Sleuth + Zipkin)
+
+  sleuth:
+    sampler:
+      probability: 1.0   # Trace 100% requests
+  zipkin:
+    base-url: http://localhost:9411   # Zipkin server
+
+# Eureka client (if using Eureka)
 eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: '*'
-
-logging:
-  level:
-    root: INFO
-    org.springframework.cloud.gateway: DEBUG
-    org.springframework.web: INFO
-  pattern:
-    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
-
-# Sleuth + Zipkin
-
-  sleuth:
-    sampler:
-      probability: 1.0
-  zipkin:
-    base-url: http://localhost:9411
