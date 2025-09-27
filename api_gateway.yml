@@ -11,8 +11,8 @@ spring:
         locator:
           enabled: true
           lower-case-service-id: true
+
       routes:
-        # Customer Service Route
         - id: customer-service
           uri: lb://customer-service
           predicates:
@@ -23,8 +23,11 @@ spring:
               args:
                 name: customerServiceCB
                 fallbackUri: forward:/fallback/customers
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 5
+                redis-rate-limiter.burstCapacity: 10
 
-        # Account Service Route
         - id: account-service
           uri: lb://account-service
           predicates:
@@ -35,8 +38,11 @@ spring:
               args:
                 name: accountServiceCB
                 fallbackUri: forward:/fallback/accounts
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
 
-        # Transaction Service Route
         - id: transaction-service
           uri: lb://transaction-service
           predicates:
@@ -47,8 +53,11 @@ spring:
               args:
                 name: transactionServiceCB
                 fallbackUri: forward:/fallback/transactions
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 15
+                redis-rate-limiter.burstCapacity: 30
 
-        # Notification Service Route
         - id: notification-service
           uri: lb://notification-service
           predicates:
@@ -59,8 +68,11 @@ spring:
               args:
                 name: notificationServiceCB
                 fallbackUri: forward:/fallback/notifications
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 20
+                redis-rate-limiter.burstCapacity: 40
 
-# Resilience4j (Circuit Breaker + Rate Limiting)
 resilience4j:
   circuitbreaker:
     instances:
@@ -83,28 +95,19 @@ resilience4j:
 
   ratelimiter:
     instances:
-      default:
+      customerServiceRL:
+        limitForPeriod: 5
+        limitRefreshPeriod: 1s
+        timeoutDuration: 0
+      accountServiceRL:
+        limitForPeriod: 10
+        limitRefreshPeriod: 1s
+        timeoutDuration: 0
+      transactionServiceRL:
+        limitForPeriod: 15
+        limitRefreshPeriod: 1s
+        timeoutDuration: 0
+      notificationServiceRL:
         limitForPeriod: 20
         limitRefreshPeriod: 1s
         timeoutDuration: 0
-
-# Logging (structured logs with traceId/spanId)
-logging:
-  level:
-    org.springframework.cloud.gateway: INFO
-    org.springframework.web: INFO
-    com.myproject.api_gateway: DEBUG
-
-# Distributed tracing (Sleuth + Zipkin)
-sleuth:
-  sampler:
-    probability: 1.0   # Trace 100% requests
-
-zipkin:
-  base-url: http://localhost:9411   # Zipkin server
-
-# Eureka client
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka/
