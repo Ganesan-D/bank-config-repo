@@ -23,10 +23,9 @@ spring:
               args:
                 name: customerServiceCB
                 fallbackUri: forward:/fallback/customers
-            - name: RequestRateLimiter
+            - name: Resilience4jRateLimiter
               args:
-                redis-rate-limiter.replenishRate: 5
-                redis-rate-limiter.burstCapacity: 10
+                name: customerServiceRL
 
         - id: account-service
           uri: lb://account-service
@@ -38,10 +37,9 @@ spring:
               args:
                 name: accountServiceCB
                 fallbackUri: forward:/fallback/accounts
-            - name: RequestRateLimiter
+            - name: Resilience4jRateLimiter
               args:
-                redis-rate-limiter.replenishRate: 10
-                redis-rate-limiter.burstCapacity: 20
+                name: accountServiceRL
 
         - id: transaction-service
           uri: lb://transaction-service
@@ -53,10 +51,9 @@ spring:
               args:
                 name: transactionServiceCB
                 fallbackUri: forward:/fallback/transactions
-            - name: RequestRateLimiter
+            - name: Resilience4jRateLimiter
               args:
-                redis-rate-limiter.replenishRate: 15
-                redis-rate-limiter.burstCapacity: 30
+                name: transactionServiceRL
 
         - id: notification-service
           uri: lb://notification-service
@@ -68,10 +65,9 @@ spring:
               args:
                 name: notificationServiceCB
                 fallbackUri: forward:/fallback/notifications
-            - name: RequestRateLimiter
+            - name: Resilience4jRateLimiter
               args:
-                redis-rate-limiter.replenishRate: 20
-                redis-rate-limiter.burstCapacity: 40
+                name: notificationServiceRL
 
 resilience4j:
   circuitbreaker:
