@@ -4,6 +4,7 @@ server:
 spring:
   application:
     name: api-gateway
+
   cloud:
     gateway:
       discovery:
@@ -22,10 +23,6 @@ spring:
               args:
                 name: customerServiceCB
                 fallbackUri: forward:/fallback/customers
-            - name: RequestRateLimiter
-              args:
-                redis-rate-limiter.replenishRate: 5
-                redis-rate-limiter.burstCapacity: 10
 
         # Account Service Route
         - id: account-service
@@ -38,10 +35,6 @@ spring:
               args:
                 name: accountServiceCB
                 fallbackUri: forward:/fallback/accounts
-            - name: RequestRateLimiter
-              args:
-                redis-rate-limiter.replenishRate: 10
-                redis-rate-limiter.burstCapacity: 20
 
         # Transaction Service Route
         - id: transaction-service
@@ -54,10 +47,6 @@ spring:
               args:
                 name: transactionServiceCB
                 fallbackUri: forward:/fallback/transactions
-            - name: RequestRateLimiter
-              args:
-                redis-rate-limiter.replenishRate: 15
-                redis-rate-limiter.burstCapacity: 30
 
         # Notification Service Route
         - id: notification-service
@@ -70,17 +59,8 @@ spring:
               args:
                 name: notificationServiceCB
                 fallbackUri: forward:/fallback/notifications
-            - name: RequestRateLimiter
-              args:
-                redis-rate-limiter.replenishRate: 20
-                redis-rate-limiter.burstCapacity: 40
 
-  sleuth:
-    sampler:
-      probability: 1.0   # Trace 100% requests
-  zipkin:
-    base-url: http://localhost:9411   # Zipkin server
-
+# Resilience4j (Circuit Breaker + Rate Limiting)
 resilience4j:
   circuitbreaker:
     instances:
@@ -101,12 +81,29 @@ resilience4j:
         failureRateThreshold: 50
         waitDurationInOpenState: 10s
 
+  ratelimiter:
+    instances:
+      default:
+        limitForPeriod: 20
+        limitRefreshPeriod: 1s
+        timeoutDuration: 0
+
+# Logging (structured logs with traceId/spanId)
 logging:
   level:
     org.springframework.cloud.gateway: INFO
     org.springframework.web: INFO
-    com.example.gateway: DEBUG
+    com.myproject.api_gateway: DEBUG
 
+# Distributed tracing (Sleuth + Zipkin)
+sleuth:
+  sampler:
+    probability: 1.0   # Trace 100% requests
+
+zipkin:
+  base-url: http://localhost:9411   # Zipkin server
+
+# Eureka client
 eureka:
   client:
     service-url:
