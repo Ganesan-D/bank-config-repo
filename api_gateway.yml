@@ -8,8 +8,8 @@ spring:
   security:
     oauth2:
       resourceserver:
-        jwt:
-          jwk-set-uri: http://authentication-service/.well-known/jwks.json
+          jwt:
+            public-key-pem: classpath:keys/public.pem
 
   cloud:
     gateway:
