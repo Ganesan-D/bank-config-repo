@@ -2,13 +2,11 @@ server:
   port: 8085
 
 spring:
-  application:
-    name: api-gateway
-
   security:
     oauth2:
       resourceserver:
         jwt:
+          # loads public key from classpath:keys/public.pem
           public-key-pem: classpath:keys/public.pem
 
   redis:
@@ -86,6 +84,12 @@ spring:
                 redis-rate-limiter.replenishRate: 20
                 redis-rate-limiter.burstCapacity: 20
                 key-resolver: "#{@principalNameKeyResolver}"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
 
 resilience4j:
   circuitbreaker:
