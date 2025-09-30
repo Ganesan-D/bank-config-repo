@@ -23,6 +23,7 @@ spring:
       resourceserver:
         jwt:
           jwk-set-uri: http://localhost:9000/.well-known/jwks.json   # Auth Service JWKS
+          public-key-location: classpath:keys/public.pem
 
 # Redis (rate limiter)
 
