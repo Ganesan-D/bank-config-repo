@@ -2,111 +2,82 @@ server:
   port: 8085
 
 spring:
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          # loads public key from classpath:keys/public.pem
-          public-key-pem: classpath:keys/public.pem
-
   redis:
     host: localhost
     port: 6379
-
   cloud:
     gateway:
-      discovery:
-        locator:
-          enabled: true
-          lower-case-service-id: true
-
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
       routes:
-        - id: customer-service
-          uri: lb://customer-service
+        - id: auth-service
+          uri: lb://auth-service
           predicates:
-            - Path=/customers/**
-          filters:
-            - JwtForwardingFilter
-            - name: CircuitBreaker
-              args:
-                name: customerServiceCB
-                fallbackUri: forward:/fallback/customers
-            - name: RequestRateLimiter
-              args:
-                redis-rate-limiter.replenishRate: 5
-                redis-rate-limiter.burstCapacity: 5
-                key-resolver: "#{@principalNameKeyResolver}"
-
+            - Path=/auth/**
         - id: account-service
           uri: lb://account-service
           predicates:
-            - Path=/accounts/**
+            - Path=/api/accounts/**
           filters:
-            - JwtForwardingFilter
             - name: CircuitBreaker
               args:
-                name: accountServiceCB
+                name: accountCB
                 fallbackUri: forward:/fallback/accounts
             - name: RequestRateLimiter
               args:
                 redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+        - id: customer-service
+          uri: lb://customer-service
+          predicates:
+            - Path=/api/customers/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: customerCB
+                fallbackUri: forward:/fallback/customers
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 5
                 redis-rate-limiter.burstCapacity: 10
-                key-resolver: "#{@principalNameKeyResolver}"
-
         - id: transaction-service
           uri: lb://transaction-service
           predicates:
-            - Path=/transactions/**
+            - Path=/api/transactions/**
           filters:
-            - JwtForwardingFilter
             - name: CircuitBreaker
               args:
-                name: transactionServiceCB
+                name: transactionCB
                 fallbackUri: forward:/fallback/transactions
             - name: RequestRateLimiter
               args:
                 redis-rate-limiter.replenishRate: 15
-                redis-rate-limiter.burstCapacity: 15
-                key-resolver: "#{@principalNameKeyResolver}"
-
+                redis-rate-limiter.burstCapacity: 30
         - id: notification-service
           uri: lb://notification-service
           predicates:
-            - Path=/notifications/**
+            - Path=/api/notifications/**
           filters:
-            - JwtForwardingFilter
             - name: CircuitBreaker
               args:
-                name: notificationServiceCB
+                name: notificationCB
                 fallbackUri: forward:/fallback/notifications
             - name: RequestRateLimiter
               args:
                 redis-rate-limiter.replenishRate: 20
-                redis-rate-limiter.burstCapacity: 20
-                key-resolver: "#{@principalNameKeyResolver}"
+                redis-rate-limiter.burstCapacity: 40
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,prometheus
+        include: '*'
 
-resilience4j:
-  circuitbreaker:
-    instances:
-      customerServiceCB:
-        slidingWindowSize: 10
-        failureRateThreshold: 50
-        waitDurationInOpenState: 10s
-      accountServiceCB:
-        slidingWindowSize: 10
-        failureRateThreshold: 50
-        waitDurationInOpenState: 10s
-      transactionServiceCB:
-        slidingWindowSize: 10
-        failureRateThreshold: 50
-        waitDurationInOpenState: 10s
-      notificationServiceCB:
-        slidingWindowSize: 10
-        failureRateThreshold: 50
-        waitDurationInOpenState: 10s
+security:
+  jwt:
+    public-key-location: classpath:public_key.pem
