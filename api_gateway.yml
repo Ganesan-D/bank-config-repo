@@ -19,11 +19,13 @@ spring:
 # OAuth2 resource-server: validate RS256 tokens using Auth Service JWKS
 
   security:
-    oauth2:
-      resourceserver:
-        jwt:
-          jwk-set-uri: http://localhost:9000/.well-known/jwks.json   # Auth Service JWKS
-          public-key-location: classpath:keys/public.pem
+    jwt:
+      public-key-location: classpath:keys/public.pem
+#    oauth2:
+#      resourceserver:
+#        jwt:
+#          jwk-set-uri: http://localhost:9000/.well-known/jwks.json   # Auth Service JWKS
+#          public-key-location: classpath:keys/public.pem
 
 # Redis (rate limiter)
 
