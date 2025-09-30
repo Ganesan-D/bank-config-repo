@@ -1,71 +1,68 @@
 server:
-  port: 8085
+  port: 8080
 
 spring:
+  application:
+    name: api-gateway
+
+  # Where to fetch shared configs (overridden by config server)
+  config:
+    import: optional:configserver:http://localhost:8888
+
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+
+# OAuth2 resource-server: validate RS256 tokens using Auth Service JWKS
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:9000/.well-known/jwks.json   # Auth Service JWKS
+
+# Redis (rate limiter)
+
   redis:
     host: localhost
     port: 6379
+
+# Resilience4j (defaults, can be overridden in config server)
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        slidingWindowSize: 100
+        minimumNumberOfCalls: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 30s
+    instances:
+      accountCB:
+        baseConfig: default
+      customerCB:
+        baseConfig: default
+      transactionCB:
+        baseConfig: default
+      notificationCB:
+        baseConfig: default
+
+# Gateway routes (we use RouteLocator in code, discovery locator is enabled)
+
   cloud:
     gateway:
       default-filters:
-        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
-      routes:
-        - id: auth-service
-          uri: lb://auth-service
-          predicates:
-            - Path=/auth/**
-        - id: account-service
-          uri: lb://account-service
-          predicates:
-            - Path=/api/accounts/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: accountCB
-                fallbackUri: forward:/fallback/accounts
-            - name: RequestRateLimiter
-              args:
-                redis-rate-limiter.replenishRate: 10
-                redis-rate-limiter.burstCapacity: 20
-        - id: customer-service
-          uri: lb://customer-service
-          predicates:
-            - Path=/api/customers/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: customerCB
-                fallbackUri: forward:/fallback/customers
-            - name: RequestRateLimiter
-              args:
-                redis-rate-limiter.replenishRate: 5
-                redis-rate-limiter.burstCapacity: 10
-        - id: transaction-service
-          uri: lb://transaction-service
-          predicates:
-            - Path=/api/transactions/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: transactionCB
-                fallbackUri: forward:/fallback/transactions
-            - name: RequestRateLimiter
-              args:
-                redis-rate-limiter.replenishRate: 15
-                redis-rate-limiter.burstCapacity: 30
-        - id: notification-service
-          uri: lb://notification-service
-          predicates:
-            - Path=/api/notifications/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: notificationCB
-                fallbackUri: forward:/fallback/notifications
-            - name: RequestRateLimiter
-              args:
-                redis-rate-limiter.replenishRate: 20
-                redis-rate-limiter.burstCapacity: 40
+        - RemoveRequestHeader=Cookie
+
+# Tracing
+
+  sleuth:
+    sampler:
+      probability: 1.0
+  zipkin:
+    base-url: http://localhost:9411
 
 eureka:
   client:
@@ -76,8 +73,9 @@ management:
   endpoints:
     web:
       exposure:
-        include: '*'
+        include: "*"
 
-security:
-  jwt:
-    public-key-location: classpath:public_key.pem
+logging:
+  level:
+    root: INFO
+    org.springframework.cloud.gateway: INFO
