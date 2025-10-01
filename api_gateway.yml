@@ -12,7 +12,7 @@ spring:
           predicates:
             - Path=/auth/**
         - id: account-service
-          uri: lb://account-service
+          uri: lb://accounts-service
           predicates:
             - Path=/api/accounts/**
           filters:
