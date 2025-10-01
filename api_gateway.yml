@@ -19,8 +19,8 @@ spring:
             - JwtAuthenticationFilter
             - name: RequestRateLimiter
               args:
-                redis-rate-limiter.replenishRate: 10
-                redis-rate-limiter.burstCapacity: 20
+                redis-rate-limiter.replenishRate: ${ratelimiter.replenishRate:10}
+                redis-rate-limiter.burstCapacity: ${ratelimiter.burstCapacity:20}
             - name: CircuitBreaker
               args:
                 name: accountCB
@@ -33,8 +33,8 @@ spring:
             - JwtAuthenticationFilter
             - name: RequestRateLimiter
               args:
-                redis-rate-limiter.replenishRate: 10
-                redis-rate-limiter.burstCapacity: 20
+                redis-rate-limiter.replenishRate: ${ratelimiter.replenishRate:10}
+                redis-rate-limiter.burstCapacity: ${ratelimiter.burstCapacity:20}
             - name: CircuitBreaker
               args:
                 name: customerCB
@@ -47,8 +47,8 @@ spring:
             - JwtAuthenticationFilter
             - name: RequestRateLimiter
               args:
-                redis-rate-limiter.replenishRate: 5
-                redis-rate-limiter.burstCapacity: 10
+                redis-rate-limiter.replenishRate: ${ratelimiter.replenishRate:5}
+                redis-rate-limiter.burstCapacity: ${ratelimiter.burstCapacity:10}
             - name: CircuitBreaker
               args:
                 name: transactionCB
@@ -61,8 +61,8 @@ spring:
             - JwtAuthenticationFilter
             - name: RequestRateLimiter
               args:
-                redis-rate-limiter.replenishRate: 5
-                redis-rate-limiter.burstCapacity: 10
+                redis-rate-limiter.replenishRate: ${ratelimiter.replenishRate:5}
+                redis-rate-limiter.burstCapacity: ${ratelimiter.burstCapacity:10}
             - name: CircuitBreaker
               args:
                 name: notificationCB
@@ -90,3 +90,6 @@ resilience4j.circuitbreaker:
 jwt:
   public-key-location: classpath:keys/rsa_public.pem
 
+ratelimiter:
+  replenishRate: 5   # requests per second to replenish
+  burstCapacity: 10  # max requests in the bucket
