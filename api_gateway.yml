@@ -89,3 +89,4 @@ resilience4j.circuitbreaker:
 
 jwt:
   public-key-location: classpath:keys/public.pem
+
