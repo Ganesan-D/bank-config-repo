@@ -88,5 +88,5 @@ resilience4j.circuitbreaker:
       failureRateThreshold: 50
 
 jwt:
-  public-key-location: classpath:keys/public.pem
+  public-key-location: classpath:keys/rsa_public.pem
 
