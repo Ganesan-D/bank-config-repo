@@ -7,8 +7,8 @@ spring:
   cloud:
     gateway:
       filter:
-#        request-rate-limiter:
-#          include-headers: false
+        request-rate-limiter:
+          include-headers: false
       routes:
         - id: auth-service
           uri: lb://auth-service
@@ -20,11 +20,11 @@ spring:
             - Path=/api/accounts/**
           filters:
             - JwtAuthenticationFilter
-#            - name: RequestRateLimiter
-#              args:
-#                include-headers: false
-#                redis-rate-limiter.replenishRate: ${ratelimiter.replenishRate:10}
-#                redis-rate-limiter.burstCapacity: ${ratelimiter.burstCapacity:20}
+            - name: RequestRateLimiter
+              args:
+                include-headers: false
+                redis-rate-limiter.replenishRate: ${ratelimiter.replenishRate:10}
+                redis-rate-limiter.burstCapacity: ${ratelimiter.burstCapacity:20}
             - name: CircuitBreaker
               args:
                 name: accountCB
@@ -35,11 +35,11 @@ spring:
             - Path=/api/customers/**
           filters:
             - JwtAuthenticationFilter
-#            - name: RequestRateLimiter
-#              args:
-#                include-headers: false
-#                redis-rate-limiter.replenishRate: ${ratelimiter.replenishRate:10}
-#                redis-rate-limiter.burstCapacity: ${ratelimiter.burstCapacity:20}
+            - name: RequestRateLimiter
+              args:
+                include-headers: false
+                redis-rate-limiter.replenishRate: ${ratelimiter.replenishRate:10}
+                redis-rate-limiter.burstCapacity: ${ratelimiter.burstCapacity:20}
             - name: CircuitBreaker
               args:
                 name: customerCB
@@ -50,11 +50,11 @@ spring:
             - Path=/api/transactions/**
           filters:
             - JwtAuthenticationFilter
-#            - name: RequestRateLimiter
-#              args:
-#                include-headers: false
-#                redis-rate-limiter.replenishRate: ${ratelimiter.replenishRate:5}
-#                redis-rate-limiter.burstCapacity: ${ratelimiter.burstCapacity:10}
+            - name: RequestRateLimiter
+              args:
+                include-headers: false
+                redis-rate-limiter.replenishRate: ${ratelimiter.replenishRate:5}
+                redis-rate-limiter.burstCapacity: ${ratelimiter.burstCapacity:10}
             - name: CircuitBreaker
               args:
                 name: transactionCB
@@ -65,11 +65,11 @@ spring:
             - Path=/api/notifications/**
           filters:
             - JwtAuthenticationFilter
-#            - name: RequestRateLimiter
-#              args:
-#                include-headers: false
-#                redis-rate-limiter.replenishRate: ${ratelimiter.replenishRate:5}
-#                redis-rate-limiter.burstCapacity: ${ratelimiter.burstCapacity:10}
+            - name: RequestRateLimiter
+              args:
+                include-headers: false
+                redis-rate-limiter.replenishRate: ${ratelimiter.replenishRate:5}
+                redis-rate-limiter.burstCapacity: ${ratelimiter.burstCapacity:10}
             - name: CircuitBreaker
               args:
                 name: notificationCB
@@ -97,6 +97,6 @@ resilience4j.circuitbreaker:
 jwt:
   public-key-location: classpath:keys/rsa_public.pem
 
-#ratelimiter:
-#  replenishRate: 5   # requests per second to replenish
-#  burstCapacity: 10  # max requests in the bucket
+ratelimiter:
+  replenishRate: 5   # requests per second to replenish
+  burstCapacity: 10  # max requests in the bucket
