@@ -22,6 +22,7 @@ spring:
             - JwtAuthenticationFilter
             - name: RequestRateLimiter
               args:
+                include-headers: false
                 redis-rate-limiter.replenishRate: ${ratelimiter.replenishRate:10}
                 redis-rate-limiter.burstCapacity: ${ratelimiter.burstCapacity:20}
             - name: CircuitBreaker
@@ -36,6 +37,7 @@ spring:
             - JwtAuthenticationFilter
             - name: RequestRateLimiter
               args:
+                include-headers: false
                 redis-rate-limiter.replenishRate: ${ratelimiter.replenishRate:10}
                 redis-rate-limiter.burstCapacity: ${ratelimiter.burstCapacity:20}
             - name: CircuitBreaker
@@ -50,6 +52,7 @@ spring:
             - JwtAuthenticationFilter
             - name: RequestRateLimiter
               args:
+                include-headers: false
                 redis-rate-limiter.replenishRate: ${ratelimiter.replenishRate:5}
                 redis-rate-limiter.burstCapacity: ${ratelimiter.burstCapacity:10}
             - name: CircuitBreaker
@@ -64,6 +67,7 @@ spring:
             - JwtAuthenticationFilter
             - name: RequestRateLimiter
               args:
+                include-headers: false
                 redis-rate-limiter.replenishRate: ${ratelimiter.replenishRate:5}
                 redis-rate-limiter.burstCapacity: ${ratelimiter.burstCapacity:10}
             - name: CircuitBreaker
