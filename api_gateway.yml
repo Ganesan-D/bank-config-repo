@@ -6,10 +6,9 @@ spring:
     name: api-gateway
   cloud:
     gateway:
-      default-filters:
-        - name: RequestRateLimiter
-          args:
-            includeHeaders: false
+      filter:
+        request-rate-limiter:
+          include-headers: false
       routes:
         - id: auth-service
           uri: lb://auth-service
