@@ -6,14 +6,16 @@ spring:
     name: api-gateway
   cloud:
     gateway:
-      filter:
-        request-rate-limiter:
-          include-headers: false
+      default-filters:
+        - name: RequestRateLimiter
+          args:
+            includeHeaders: false
       routes:
         - id: auth-service
           uri: lb://auth-service
           predicates:
             - Path=/auth/**
+
         - id: account-service
           uri: lb://accounts-service
           predicates:
@@ -22,13 +24,14 @@ spring:
             - JwtAuthenticationFilter
             - name: RequestRateLimiter
               args:
-                include-headers: false
+                includeHeaders: false
                 redis-rate-limiter.replenishRate: ${ratelimiter.replenishRate:10}
                 redis-rate-limiter.burstCapacity: ${ratelimiter.burstCapacity:20}
             - name: CircuitBreaker
               args:
                 name: accountCB
                 fallbackUri: forward:/fallback/accounts
+
         - id: customer-service
           uri: lb://customer-service
           predicates:
@@ -37,13 +40,14 @@ spring:
             - JwtAuthenticationFilter
             - name: RequestRateLimiter
               args:
-                include-headers: false
+                includeHeaders: false
                 redis-rate-limiter.replenishRate: ${ratelimiter.replenishRate:10}
                 redis-rate-limiter.burstCapacity: ${ratelimiter.burstCapacity:20}
             - name: CircuitBreaker
               args:
                 name: customerCB
                 fallbackUri: forward:/fallback/customers
+
         - id: transaction-service
           uri: lb://transaction-service
           predicates:
@@ -52,13 +56,14 @@ spring:
             - JwtAuthenticationFilter
             - name: RequestRateLimiter
               args:
-                include-headers: false
+                includeHeaders: false
                 redis-rate-limiter.replenishRate: ${ratelimiter.replenishRate:5}
                 redis-rate-limiter.burstCapacity: ${ratelimiter.burstCapacity:10}
             - name: CircuitBreaker
               args:
                 name: transactionCB
                 fallbackUri: forward:/fallback/transactions
+
         - id: notification-service
           uri: lb://notification-service
           predicates:
@@ -67,7 +72,7 @@ spring:
             - JwtAuthenticationFilter
             - name: RequestRateLimiter
               args:
-                include-headers: false
+                includeHeaders: false
                 redis-rate-limiter.replenishRate: ${ratelimiter.replenishRate:5}
                 redis-rate-limiter.burstCapacity: ${ratelimiter.burstCapacity:10}
             - name: CircuitBreaker
@@ -79,20 +84,21 @@ spring:
     host: localhost
     port: 6379
 
-resilience4j.circuitbreaker:
-  instances:
-    accountCB:
-      slidingWindowSize: 10
-      failureRateThreshold: 50
-    customerCB:
-      slidingWindowSize: 10
-      failureRateThreshold: 50
-    transactionCB:
-      slidingWindowSize: 10
-      failureRateThreshold: 50
-    notificationCB:
-      slidingWindowSize: 10
-      failureRateThreshold: 50
+resilience4j:
+  circuitbreaker:
+    instances:
+      accountCB:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+      customerCB:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+      transactionCB:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+      notificationCB:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
 
 jwt:
   public-key-location: classpath:keys/rsa_public.pem
